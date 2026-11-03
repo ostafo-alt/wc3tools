@@ -166,8 +166,6 @@ input[type=search],select{font:14px var(--f-body);padding:7px 10px;border:1px so
     <h2>Account</h2>
     <div class="two" id="account"></div>
   </section>
-
-  <p class="note">Names, tooltips and icons come from the map's object data (CWG v11). Field names, classes, tiers, achievements and supporter flags come from the map script. A few icons use built-in Warcraft art that isn't in the map files, so those show their rawcode instead. Hover or tap an item to see its tooltip.</p>
 </div>
 
 <script>
@@ -304,7 +302,7 @@ function renderDetail(){
   const h=STATE.heroes.find(x=>x.fam===STATE.sel);
   const el=$("#detail");
   if(!h){el.innerHTML=`<div class="pane"><p class="muted">Choose a hero above to see its full save.</p></div>`;return}
-  const tabs=[["overview","Overview"],["inventory","Inventory"],["progression","Progression"],["achievements",`Achievements (${h.ach.length})`],["raw","Raw data"]];
+  const tabs=[["overview","Overview"],["inventory","Inventory"],["progression","Progression"],["achievements",`Achievements (${h.ach.length})`]];
   let body="";
   if(STATE.tab==="overview"){
     const st=(l,v,c)=>`<div class="stat"><span class="label">${l}</span><span class="v" ${c?`style="color:${c}"`:""} title="${fmt(v)}">${fmt(v)}</span></div>`;
@@ -328,11 +326,6 @@ function renderDetail(){
       <div class="group"><h3>Book progress</h3><div class="tablewrap"><table><thead><tr><th>Counter</th><th class="num">Value</th></tr></thead><tbody>${h.books.map(([c,v])=>`<tr><td>${esc(counterLabel(c))}</td><td class="num">${fmt(v)}</td></tr>`).join("")||`<tr><td colspan="2" class="muted">None</td></tr>`}</tbody></table></div></div>
     </div>
     <div class="group"><h3>Kills by monster · ${h.kills.length} types</h3><div class="tablewrap" style="max-height:360px"><table><thead><tr><th>ID</th><th>Monster</th><th class="num">Kills</th></tr></thead><tbody>${[...h.kills].sort((a,b)=>b[2]-a[2]).map(([id,r,c])=>`<tr><td class="mono muted">${id}</td><td><span class="mon">${img(r,"ic sm")}<span>${esc(unitName(r))}</span></span></td><td class="num">${fmt(c)}${c>=1000?' <span class="pill">max</span>':""}</td></tr>`).join("")||`<tr><td colspan="3" class="muted">None</td></tr>`}</tbody></table></div></div>`;
-  }else{
-    const H={4000:"Magic",4001:"Schema",4002:"User hash",4003:"Slot",4004:"Hero ID",4005:"Times saved",4006:"Field count",4007:"Checksum",4008:"Auth 1",4009:"Auth 2",4010:"Auth 3",4011:"Auth 4",4012:"Format (3126 = wide)"};
-    const rows=Object.keys(H).filter(k=>k in h.hdr).map(k=>`<tr><td class="mono muted">${k}</td><td>${H[k]}</td><td class="num">${fmt(h.hdr[k])}</td><td class="mono">${raw(h.hdr[k])}</td></tr>`);
-    h.b.forEach((v,i)=>{if(!v)return;let n=i<469?L.fields[i]:i<477?`Achievement flags word ${i-469}`:i<490?COUNTERS[i-477]:`Sparse id ${Math.floor(v/RAD)}, count ${v%RAD}`;rows.push(`<tr><td class="mono muted">${4100+i}</td><td>${esc(n)}</td><td class="num">${fmt(v)}</td><td class="mono">${raw(v)}</td></tr>`)});
-    body=`<div class="tablewrap" style="max-height:560px"><table><thead><tr><th>Key</th><th>Field</th><th class="num">Value</th><th>Rawcode</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
   }
   el.innerHTML=`<div class="dhead"><div style="display:flex;gap:16px;align-items:center;min-width:0">${img(h.hid,"ic lg")}<div style="display:grid;gap:4px;min-width:0"><span class="label">Slot ${h.fam} · ${esc(h.stat)} · ${esc(h.hid)}</span><h2 style="font-size:28px">${esc(h.cls)} <span class="pill tier" style="vertical-align:middle">Tier ${TIER[h.tier]||"?"}</span></h2><span class="muted">${esc(unitName(h.hid))}</span></div></div><span class="muted num">${fmt(h.exp)} XP</span></div>
   <div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button class="tab" role="tab" aria-selected="${STATE.tab===k}" data-tab="${k}">${l}</button>`).join("")}</div>
@@ -341,11 +334,11 @@ function renderDetail(){
 function renderAccount(){
   const s=STATE.settings,e=STATE.ent,AUTO=["Off","Every 2 hours","Every 60 min","Every 15 min"],DT=["All off","Allies off (own only)","All on"];
   const onoff=v=>v?`<span class="ok">On</span>`:`<span class="muted">Off</span>`;
-  const sHTML=s?`<div class="group"><div class="toolbar"><h3>Settings</h3><span class="pill ${s.valid?"fresh":""}">${s.valid?"checksum valid":"checksum invalid"}</span></div>
+  const sHTML=s?`<div class="group"><h3>Settings</h3>
     <dl class="kv"><dt>Autosave</dt><dd>${AUTO[s.v[2]]??s.v[2]}</dd><dt>Block item drops</dt><dd>${onoff(s.v[1])}</dd><dt>Damage text</dt><dd>${s.v[3]?"Hidden":"Visible"}</dd><dt>Potion messages</dt><dd>${onoff(s.v[4])}</dd><dt>Auto potion</dt><dd>${onoff(s.v[5])}</dd><dt>Damage tracker</dt><dd>${DT[s.v[6]]??s.v[6]}</dd></dl></div>`:`<div class="group"><h3>Settings</h3><p class="muted">No SETTINGS file loaded.</p></div>`;
   const eHTML=e?`<div class="group"><h3>Supporter unlocks</h3>
     ${e.owned.length?`<div class="achlist">${e.owned.map(i=>`<div class="ach"><span class="id">${i}</span><span>${esc(L.entname[i]||"Flag "+i)}</span></div>`).join("")}</div>`:`<p class="muted">No unlocks.</p>`}
-    <dl class="kv"><dt>Version</dt><dd>${esc(e.f[0])}</dd><dt>Fame tier</dt><dd>${esc(e.f[8])}</dd><dt>Fame aura</dt><dd>${esc(e.f[9])} bp</dd><dt>Signature</dt><dd style="word-break:break-all">${esc(e.sig.slice(0,32))}…</dd></dl></div>`:`<div class="group"><h3>Supporter unlocks</h3><p class="muted">No ENTITLEMENTS files loaded.</p></div>`;
+    <dl class="kv"><dt>Fame tier</dt><dd>${esc(e.f[8])}</dd><dt>Fame aura</dt><dd>${esc(e.f[9])} bp</dd></dl></div>`:`<div class="group"><h3>Supporter unlocks</h3><p class="muted">No ENTITLEMENTS files loaded.</p></div>`;
   $("#account").innerHTML=sHTML+eHTML;
 }
 function render(){renderRoster();renderDetail();renderAccount()}
